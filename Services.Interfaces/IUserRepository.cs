@@ -1,4 +1,5 @@
-﻿using DataLayer.Entityes;
+﻿using AutoMapper.Models;
+using DataLayer.Entityes;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -8,7 +9,7 @@ namespace Services.Interfaces
 {
     public interface IUserRepository
     {
-        public Task<List<ApplicationUser>> GetUsersAll();
+        public Task<List<UserModel>> GetUsersAll();
         public ValueTask<ApplicationUser> GetUser(string id,bool IncludeTickets = false);
     }
 }

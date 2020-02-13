@@ -73,7 +73,7 @@ namespace AirlineAPI.Controllers
         {
             if ((userId == "0") && (User.Identity.IsAuthenticated)) userId = User.Claims.ToList()[1].Value;
             var u = await _userRep.GetUser(userId, true);
-            if (User == null) return BadRequest();
+            if (u == null) return BadRequest();
             return Ok( await _taskRep.GetKilometersInAir(u.Id));
         }
     }

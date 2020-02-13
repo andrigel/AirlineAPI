@@ -14,15 +14,15 @@ namespace Services.Implementations
 {
     public class EFTaskRepository : ITaskRepository
     {
-        private EFDBContext context;
+        private EFDBContext _context;
         public EFTaskRepository(EFDBContext context)
         {
-            this.context = context;
+            this._context = context;
         }
 
         public List<FlightModel> GetFlightsByDate(DateTime from, DateTime to)
         {
-            var flights = context.Flights.Where(f => ((f.Start > from) && (f.Start < to))).ToList();
+            var flights = _context.Flights.Where(f => ((f.Start > from) && (f.Start < to))).ToList();
             var configuration = new MapperConfiguration(cfg => cfg.CreateMap<Flight, FlightModel>());
             var mapper = new Mapper(configuration);
             List<FlightModel> flightsModels = new List<FlightModel>();
@@ -43,12 +43,12 @@ namespace Services.Implementations
         public async ValueTask<int> GetKilometersInAir(string userId)
         {
             int result = 0;
-            var user = await context.ApplicationsUsers.Where(u => u.Id == userId).Include(u => u.Tickets).FirstOrDefaultAsync();
+            var user = await _context.ApplicationsUsers.Where(u => u.Id == userId).Include(u => u.Tickets).FirstOrDefaultAsync();
             if ((user == null) || (user.Tickets.Count == 0)) return result;
 
             foreach (var t in user.Tickets)
             {
-                await context.Entry(t).Reference(t => t.Flight).LoadAsync();
+                await _context.Entry(t).Reference(t => t.Flight).LoadAsync();
             }
 
             foreach (var t in user.Tickets)
@@ -60,8 +60,8 @@ namespace Services.Implementations
 
         public async ValueTask<Ticket> ReserveTicket(string userId, int flightId, TicketClass ticketClass = TicketClass.econom, int premiumMarksUsedCount = 0, bool save = true)
         {
-            var user = await context.ApplicationsUsers.FindAsync(userId);
-            var flight = await context.Flights.FindAsync(flightId);
+            var user = await _context.ApplicationsUsers.FindAsync(userId);
+            var flight = await _context.Flights.FindAsync(flightId);
             if ((user == null) || (flight == null)) return null;
 
             int endPrice = flight.Price;
@@ -74,11 +74,11 @@ namespace Services.Implementations
                 user.PremiumMarksCount -= premiumMarksUsedCount;
                 var ticket = new Ticket { Flight = flight, User = user, PremiumMarksUsedCount = premiumMarksUsedCount, ticketClass = ticketClass, EndPrice = endPrice, IsBought = false };
                 if (!save) return ticket;
-                var DBticket = await context.Tickets.AddAsync(ticket);
+                var DBticket = await _context.Tickets.AddAsync(ticket);
 
-                await context.Entry(DBticket.Entity).Reference(t => t.Flight).LoadAsync();
+                await _context.Entry(DBticket.Entity).Reference(t => t.Flight).LoadAsync();
                 DBticket.Entity.Flight.PlacesReserved += 1;
-                await context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
                 return ticket;
             }
             catch
@@ -93,15 +93,15 @@ namespace Services.Implementations
             {
                 DateTime date = DateTime.Now;
                 var date2 = date.AddDays(3);
-                var ticket = context.Tickets.Find(ticketId);
+                var ticket = _context.Tickets.Find(ticketId);
                 if (ticket == null) return false;
-                await context.Entry(ticket).Reference(t => t.Flight).LoadAsync();
-                await context.Entry(ticket).Reference(t => t.User).LoadAsync();
+                await _context.Entry(ticket).Reference(t => t.Flight).LoadAsync();
+                await _context.Entry(ticket).Reference(t => t.User).LoadAsync();
                 if (ticket.Flight.Start < date2) return false;
                 ticket.User.PremiumMarksCount += ticket.PremiumMarksUsedCount;
                 ticket.Flight.PlacesReserved -= 1;
-                context.Tickets.Remove(ticket);
-                await context.SaveChangesAsync();
+                _context.Tickets.Remove(ticket);
+                await _context.SaveChangesAsync();
                 return true;
             }
             catch

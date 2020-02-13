@@ -30,6 +30,8 @@ namespace AirlineAPI
             services.AddDbContext<EFDBContext>(options => options.UseSqlServer(connection, b => b.MigrationsAssembly("DataLayer")));
             services.AddTransient<ITaskRepository, EFTaskRepository>();
             services.AddTransient<IUserRepository, EFUserRepository>();
+            services.AddTransient<ITicketRepository, EFTicketRepository>();
+            services.AddTransient<IFlightRepository, EFFlightRepository>();
             services.AddIdentity<ApplicationUser, IdentityRole>()
             .AddEntityFrameworkStores<EFDBContext>();
             services.AddControllers();
@@ -67,8 +69,6 @@ namespace AirlineAPI
                 app.UseDeveloperExceptionPage();
                 app.UseSwaggerDocumentation();
             }
-
-
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             //    app.UseCookiePolicy();
@@ -80,8 +80,6 @@ namespace AirlineAPI
             {
                 endpoints.MapControllers();
             });
-
-
         }
     }
 }

@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace Services.Interfaces
 {
-    public interface IFlightRepository
+    public interface ITicketRepository
     {
-        public Task<List<FlightModel>> GetAll();
+        public Task<List<TicketModel>> GetTicketsFromUser(string userId);
     }
 }
