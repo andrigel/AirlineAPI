@@ -27,21 +27,14 @@ namespace AirlineAPI.Controllers
         [HttpGet("GetTicketsFromCurrentUser")]
         public async Task<IActionResult> GetTicketsFromCurrentUser()
         {
-            var userId = User.Claims.ToList()[1].Value;
-            var u = await _userManager.FindByIdAsync(userId);
-            if (u == null) return BadRequest();
-
-            return Ok(await _ticketRep.GetTicketsFromUser(userId));
+            return Ok(await _ticketRep.GetTicketsFromUser(User.Claims.ToList()[1].Value));
         }
 
         [Authorize(Roles = "admin")]
         [HttpGet("GetTicketsFromUser")]
         public async Task<IActionResult> GetTicketsFromUser(string userId)
         {
-                if ((userId == "0") && (User.Identity.IsAuthenticated)) userId = User.Claims.ToList()[1].Value;
-                var u = await _userManager.FindByIdAsync(userId);
-                if (u == null) return BadRequest();
-
+            if ((userId == "0") && (User.Identity.IsAuthenticated)) userId = User.Claims.ToList()[1].Value;
             return Ok(await _ticketRep.GetTicketsFromUser(userId));
         }
     }

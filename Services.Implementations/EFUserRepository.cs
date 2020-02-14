@@ -14,19 +14,20 @@ namespace Services.Implementations
 {
     public class EFUserRepository : IUserRepository
     {
-        private EFDBContext _context;
+        private readonly EFDBContext _context;
         public EFUserRepository(EFDBContext context)
         {
-            this._context = context;
+            _context = context;
         }
 
-        public async ValueTask<ApplicationUser> GetUser(string id, bool IncludeTickets = false)
+        public async Task<ApplicationUser> GetUser(string id, bool IncludeTickets = false)
         {
             if (IncludeTickets)
             {
                 var u = await _context.ApplicationsUsers.Where(u => u.Id == id).Include(u => u.Tickets).FirstOrDefaultAsync();
                 return u;
             }
+
             else return await _context.ApplicationsUsers.FindAsync(id);
         }
 
@@ -45,14 +46,21 @@ namespace Services.Implementations
             return userModels;
         }
 
-        public async Task<bool> PutUser(ApplicationUser u)
+        public async Task<bool> ModifyUser(UserModel u)
         {
             try
             {
-                _context.Entry(u).State = EntityState.Modified;
+                var user = await _context.ApplicationsUsers.FindAsync(u.Id);
+
+                user.UserName = u.UserName;
+                user.Year = u.Year;
+                user.PremiumMarksCount = u.PremiumMarksCount;
+                user.Email = u.Email;
+
                 await _context.SaveChangesAsync();
                 return true;
             }
+
             catch
             {
                 return false;

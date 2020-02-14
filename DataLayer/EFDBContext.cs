@@ -10,14 +10,14 @@ namespace DataLayer
     public class EFDBContext : IdentityDbContext<ApplicationUser>
     {
         public DbSet<Flight> Flights { get; set; }
-        public DbSet<Ticket> Tickets { get; set; }
+        public DbSet<TicketModlel> Tickets { get; set; }
         public DbSet<ApplicationUser> ApplicationsUsers { get; set; }
         public EFDBContext(DbContextOptions<EFDBContext> options) : base(options) { }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            modelBuilder.Entity<Ticket>().HasOne(t => t.Flight).WithMany(f=>f.Tickets).OnDelete(DeleteBehavior.SetNull);
-            modelBuilder.Entity<Ticket>().HasOne(t => t.User).WithMany(u => u.Tickets).OnDelete(DeleteBehavior.SetNull);
+            modelBuilder.Entity<TicketModlel>().HasOne(t => t.Flight).WithMany(f=>f.Tickets).OnDelete(DeleteBehavior.SetNull);
+            modelBuilder.Entity<TicketModlel>().HasOne(t => t.User).WithMany(u => u.Tickets).OnDelete(DeleteBehavior.SetNull);
         }
     }
 

@@ -10,6 +10,6 @@ namespace Services.Interfaces
     public interface IUserRepository
     {
         public Task<List<UserModel>> GetUsersAll();
-        public ValueTask<ApplicationUser> GetUser(string id,bool IncludeTickets = false);
+        public Task<ApplicationUser> GetUser(string id,bool IncludeTickets = false);
     }
 }

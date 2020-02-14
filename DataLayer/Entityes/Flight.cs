@@ -16,6 +16,6 @@ namespace DataLayer.Entityes
         public int PlacesReserved { get; set; }
         public int Price { get; set; }
         public DateTime Start { get; set; }
-        public List<Ticket> Tickets { get; set; }
+        public List<TicketModlel> Tickets { get; set; }
     }
 }

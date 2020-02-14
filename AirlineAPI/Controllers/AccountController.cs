@@ -32,6 +32,7 @@ namespace AirlineAPI.Controllers
         {
             var u = await _userManager.FindByEmailAsync(model.Email);
             if (u == null) return NotFound();
+
             var result = await _signInManager.PasswordSignInAsync(u.UserName, model.Password, false, false);
             var userRoles = await _userManager.GetRolesAsync(u);
             var userRole = userRoles.Single();
@@ -64,10 +65,11 @@ namespace AirlineAPI.Controllers
         }
 
         [Authorize]
-        [HttpPost("getRole")]
+        [HttpGet("GetRole")]
         public async Task<IActionResult> GetAccountType()
         {
             var role = await _userManager.GetRolesAsync( await _userManager.FindByNameAsync(User.Identity.Name));
+
             return Ok(role.Single());
         }
 
@@ -90,5 +92,4 @@ namespace AirlineAPI.Controllers
             return NoContent();
         }
     }
-
 }

@@ -46,9 +46,11 @@ namespace AirlineAPI.Controllers
             {
                 var user = await _userManager.FindByIdAsync(id);
                 if (user == null) return NotFound();
+
                 await _userManager.RemoveFromRoleAsync(user, "admin");
                 await _userManager.RemoveFromRoleAsync(user, "user"); 
                 await _userManager.AddToRoleAsync(user, "admin");
+
                 return Ok();
             }
             catch
@@ -62,14 +64,17 @@ namespace AirlineAPI.Controllers
         {
             return Ok(_roleManager.Roles.ToList());
         }
+
         [HttpPost("Delete")]
         public async Task<IActionResult> Delete(string name)
         {
             IdentityRole role = _roleManager.Roles.Where(r => r.Name == name).FirstOrDefault();
+
             if (role != null)
             {
                 IdentityResult result = await _roleManager.DeleteAsync(role);
             }
+
             return Ok("Role Deleted");
         }
     }

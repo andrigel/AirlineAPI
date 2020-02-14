@@ -15,6 +15,6 @@ namespace DataLayer.Entityes
         public string Password { get; set; }*/
         public int PremiumMarksCount { get; set; }
         public int Year { get; set; }
-        public List<Ticket> Tickets { get; set; }
+        public List<TicketModlel> Tickets { get; set; }
     }
 }

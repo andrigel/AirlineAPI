@@ -44,37 +44,24 @@ namespace AirlineAPI.Controllers
         [HttpPost("ReserveTicket")]
         public async Task<IActionResult> ReserveTicket(int flightId, TicketClass ticketClass, int PremiumMarksUsedCount)
         {
-            ApplicationUser user;
-
-            user = await _userManager.FindByNameAsync(User.Identity.Name);
-            if (user == null) return BadRequest();
-            Ticket ticket = await _taskRep.ReserveTicket(user.Id, flightId, ticketClass, PremiumMarksUsedCount);
+            TicketModel ticket = await _taskRep.ReserveTicket(User.Claims.ToList()[1].Value, flightId, ticketClass, PremiumMarksUsedCount);
             if (ticket == null) return NotFound();
-            var configuration = new MapperConfiguration(cfg => cfg.CreateMap<Ticket, TicketModel>());
-            var mapper = new Mapper(configuration);
-            if (ticket != null) return Ok(mapper.Map<Ticket, TicketModel>(ticket));
-            return NotFound();
+
+            return Ok(ticket);
         }
 
         [Authorize]
         [HttpPost("ReturnTicket")]
         public async Task<IActionResult> ReturnTicket(int ticketId)
         {
-            string userId = User.Claims.ToList()[1].Value;
-            var u = await _userRep.GetUser(userId, true);
-            if (u == null) return BadRequest();
-            var ticket = u.Tickets.Where(t => t.Id == ticketId).FirstOrDefault();
-            if(ticket == null) return BadRequest();
-            return Ok(await _taskRep.TryReturnTicket(ticket.Id));
+            return Ok(await _taskRep.TryReturnTicket(User.Claims.ToList()[1].Value,ticketId));
         }
 
-        [HttpPost("GetKilometersInAir")]
-        public async Task<IActionResult> GetKilometersInAir(string userId)
+        [Authorize]
+        [HttpGet("GetKilometersInAir")]
+        public async Task<IActionResult> GetKilometersInAir()
         {
-            if ((userId == "0") && (User.Identity.IsAuthenticated)) userId = User.Claims.ToList()[1].Value;
-            var u = await _userRep.GetUser(userId, true);
-            if (u == null) return BadRequest();
-            return Ok( await _taskRep.GetKilometersInAir(u.Id));
+            return Ok( await _taskRep.GetKilometersInAir(User.Claims.ToList()[1].Value));
         }
     }
 }

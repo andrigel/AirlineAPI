@@ -11,8 +11,8 @@ namespace Services.Interfaces
     {
         public List<FlightModel> GetFlightsToday();
         public List<FlightModel> GetFlightsByDate(DateTime from, DateTime to);
-        public ValueTask<Ticket> ReserveTicket(string userId, int flightId, TicketClass ticketClass = TicketClass.econom,int PremiumMarksUsedCount = 0, bool save = true);
-        public ValueTask<bool> TryReturnTicket(int ticketId);
-        public ValueTask<int> GetKilometersInAir(string userId);
+        public Task<TicketModel> ReserveTicket(string userId, int flightId, TicketClass ticketClass = TicketClass.econom,int PremiumMarksUsedCount = 0, bool save = true);
+        public Task<bool> TryReturnTicket(string userId, int ticketId);
+        public Task<int> GetKilometersInAir(string userId);
     }
 }
