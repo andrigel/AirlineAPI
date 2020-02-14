@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -62,7 +63,7 @@ namespace AirlineAPI.Controllers
         [HttpGet("GetAllRoles")]
         public async Task<IActionResult> GetAllRoles()
         {
-            return Ok(_roleManager.Roles.ToList());
+            return Ok(await _roleManager.Roles.ToListAsync());
         }
 
         [HttpPost("Delete")]

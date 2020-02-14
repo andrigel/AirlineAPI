@@ -15,20 +15,19 @@ namespace Services.Implementations
     public class EFUserRepository : IUserRepository
     {
         private readonly EFDBContext _context;
+
+        private readonly Mapper UserMapper;
         public EFUserRepository(EFDBContext context)
         {
             _context = context;
+
+            var UserConfiguration = new MapperConfiguration(cfg => cfg.CreateMap<ApplicationUser, UserModel>());
+            UserMapper = new Mapper(UserConfiguration);
         }
 
-        public async Task<ApplicationUser> GetUser(string id, bool IncludeTickets = false)
+        public async Task<UserModel> GetUser(string id)
         {
-            if (IncludeTickets)
-            {
-                var u = await _context.ApplicationsUsers.Where(u => u.Id == id).Include(u => u.Tickets).FirstOrDefaultAsync();
-                return u;
-            }
-
-            else return await _context.ApplicationsUsers.FindAsync(id);
+            return UserMapper.Map<UserModel>(await _context.ApplicationsUsers.FindAsync(id));
         }
 
         public async Task<List<UserModel>> GetUsersAll()

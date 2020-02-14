@@ -15,17 +15,18 @@ namespace Services.Implementations
     public class EFTaskRepository : ITaskRepository
     {
         private readonly EFDBContext _context;
-        private readonly MapperConfiguration TicketConfiguration;
+
         private readonly Mapper FlightMapper;
+        private readonly Mapper TicketMapper;
         public EFTaskRepository(EFDBContext context)
         {
             _context = context;
 
-            TicketConfiguration = new MapperConfiguration(cfg => cfg.CreateMap<Flight, FlightModel>());
-            FlightMapper = new Mapper(TicketConfiguration);
+            var FlightConfiguration = new MapperConfiguration(cfg => cfg.CreateMap<Flight, FlightModel>());
+            FlightMapper = new Mapper(FlightConfiguration);
 
-            TicketConfiguration = new MapperConfiguration(cfg => cfg.CreateMap<TicketModlel, TicketModel>());
-            FlightMapper = new Mapper(TicketConfiguration);
+            var TicketConfiguration = new MapperConfiguration(cfg => cfg.CreateMap<TicketModlel, TicketModel>());
+            TicketMapper = new Mapper(TicketConfiguration);
         }
 
         public List<FlightModel> GetFlightsByDate(DateTime from, DateTime to)
@@ -102,7 +103,7 @@ namespace Services.Implementations
                 DBticket.Entity.Flight.PlacesReserved += 1;
                 await _context.SaveChangesAsync();
 
-                return FlightMapper.Map<TicketModlel, TicketModel>(ticket);
+                return TicketMapper.Map<TicketModlel, TicketModel>(ticket);
             }
 
             catch

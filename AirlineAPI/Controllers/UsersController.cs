@@ -32,33 +32,31 @@ namespace AirlineAPI.Controllers
             return Ok(await _userRep.GetUsersAll());
         }
 
+        [HttpPut]
+        public async Task<IActionResult> PutUser(UserModel u)
+        {
+            return Ok(await _userRep.ModifyUser(u));
+        }
+
         [Authorize]
         [HttpGet("GetCurrentUser")]
         public async Task<IActionResult> GetCurrentUser()
         {
-            var user = await _userManager.FindByNameAsync(User.Identity.Name);
-            var configuration = new MapperConfiguration(cfg => cfg.CreateMap<ApplicationUser, UserModel>());
-            var mapper = new Mapper(configuration);
-            return Ok(mapper.Map<ApplicationUser, UserModel>(user));
+            return Ok(await _userRep.GetUser(User.Claims.ToList()[1].Value));
         }
 
         [Authorize(Roles = "admin")]
         [HttpDelete("DeleteUser")]
         public async Task<IActionResult> DeleteUser(string userId)
         {
-            if ((userId == "0") && (User.Identity.IsAuthenticated)) userId = User.Claims.ToList()[1].Value;
-            var u = await _userRep.GetUser(userId, true);
-            if (u == null) return BadRequest();
-            return Ok(await _userManager.DeleteAsync(u));
+            return Ok(await _userManager.DeleteAsync(await _userManager.FindByIdAsync(userId)));
         }
 
         [Authorize(Roles = "user")]
         [HttpDelete("DeleteCurrentUser")]
         public async Task<IActionResult> DeleteCurrentUser()
         {
-            var userId = User.Claims.ToList()[1].Value;
-            var u = await _userRep.GetUser(userId, true);
-            return Ok(await _userManager.DeleteAsync(u));
+            return Ok(await _userManager.DeleteAsync(await _userManager.FindByIdAsync(User.Claims.ToList()[1].Value)));
         }
     }
 }
