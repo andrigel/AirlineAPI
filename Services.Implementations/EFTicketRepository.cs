@@ -24,7 +24,7 @@ namespace Services.Implementations
             var user = await _context.ApplicationsUsers.Where(u => u.Id == userId).Include(u => u.Tickets).FirstOrDefaultAsync();
             if (user == null) return null;
 
-            var configuration = new MapperConfiguration(cfg => cfg.CreateMap<TicketModlel, TicketModel>());
+            var configuration = new MapperConfiguration(cfg => cfg.CreateMap<Ticket, TicketModel>());
             var mapper = new Mapper(configuration);
 
             List<TicketModel> ticketModels = new List<TicketModel>();
@@ -32,7 +32,7 @@ namespace Services.Implementations
 
             foreach (var t in tickets)
             {
-                ticketModels.Add(mapper.Map<TicketModlel, TicketModel>(t));
+                ticketModels.Add(mapper.Map<Ticket, TicketModel>(t));
             }
 
             return ticketModels;

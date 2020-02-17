@@ -32,6 +32,7 @@ namespace AirlineAPI
             services.AddTransient<IUserRepository, EFUserRepository>();
             services.AddTransient<ITicketRepository, EFTicketRepository>();
             services.AddTransient<IFlightRepository, EFFlightRepository>();
+            services.AddTransient<IMarkRepository, EFMarkRepository>();
             services.AddIdentity<ApplicationUser, IdentityRole>()
             .AddEntityFrameworkStores<EFDBContext>();
             services.AddControllers();

@@ -52,8 +52,7 @@ namespace DataLayer.Migrations
                 name: "Flights",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Id = table.Column<Guid>(nullable: false),
                     From = table.Column<string>(nullable: true),
                     To = table.Column<string>(nullable: true),
                     Length = table.Column<int>(nullable: false),
@@ -177,11 +176,10 @@ namespace DataLayer.Migrations
                 name: "Tickets",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Id = table.Column<Guid>(nullable: false),
                     UserId = table.Column<string>(nullable: true),
-                    FlightId = table.Column<int>(nullable: true),
-                    ticketClass = table.Column<int>(nullable: false),
+                    FlightId = table.Column<Guid>(nullable: false),
+                    TicketClass = table.Column<int>(nullable: false),
                     PremiumMarksUsedCount = table.Column<int>(nullable: false),
                     IsBought = table.Column<bool>(nullable: false),
                     EndPrice = table.Column<int>(nullable: false)
@@ -194,13 +192,38 @@ namespace DataLayer.Migrations
                         column: x => x.FlightId,
                         principalTable: "Flights",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Tickets_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserMarks",
+                columns: table => new
+                {
+                    UserId = table.Column<string>(nullable: false),
+                    FlightId = table.Column<Guid>(nullable: false),
+                    Id = table.Column<Guid>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserMarks", x => new { x.FlightId, x.UserId });
+                    table.ForeignKey(
+                        name: "FK_UserMarks_Flights_FlightId",
+                        column: x => x.FlightId,
+                        principalTable: "Flights",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_UserMarks_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -251,6 +274,11 @@ namespace DataLayer.Migrations
                 name: "IX_Tickets_UserId",
                 table: "Tickets",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserMarks_UserId",
+                table: "UserMarks",
+                column: "UserId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -272,6 +300,9 @@ namespace DataLayer.Migrations
 
             migrationBuilder.DropTable(
                 name: "Tickets");
+
+            migrationBuilder.DropTable(
+                name: "UserMarks");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

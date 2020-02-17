@@ -25,7 +25,7 @@ namespace Services.Implementations
             var FlightConfiguration = new MapperConfiguration(cfg => cfg.CreateMap<Flight, FlightModel>());
             FlightMapper = new Mapper(FlightConfiguration);
 
-            var TicketConfiguration = new MapperConfiguration(cfg => cfg.CreateMap<TicketModlel, TicketModel>());
+            var TicketConfiguration = new MapperConfiguration(cfg => cfg.CreateMap<Ticket, TicketModel>());
             TicketMapper = new Mapper(TicketConfiguration);
         }
 
@@ -85,7 +85,7 @@ namespace Services.Implementations
                 endPrice -= premiumMarksUsedCount;
                 user.PremiumMarksCount -= premiumMarksUsedCount;
 
-                var ticket = new TicketModlel
+                var ticket = new Ticket
                 {
                     Flight = flight,
                     User = user,
@@ -95,7 +95,7 @@ namespace Services.Implementations
                     IsBought = false
                 };
 
-                if (!save) return FlightMapper.Map<TicketModlel, TicketModel>(ticket);
+                if (!save) return FlightMapper.Map<Ticket, TicketModel>(ticket);
 
                 var DBticket = await _context.Tickets.AddAsync(ticket);
 
@@ -103,7 +103,7 @@ namespace Services.Implementations
                 DBticket.Entity.Flight.PlacesReserved += 1;
                 await _context.SaveChangesAsync();
 
-                return TicketMapper.Map<TicketModlel, TicketModel>(ticket);
+                return TicketMapper.Map<Ticket, TicketModel>(ticket);
             }
 
             catch

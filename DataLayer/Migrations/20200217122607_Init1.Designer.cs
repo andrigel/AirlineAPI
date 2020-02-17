@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataLayer.Migrations
 {
     [DbContext(typeof(EFDBContext))]
-    [Migration("20200213113851_Init1")]
+    [Migration("20200217122607_Init1")]
     partial class Init1
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -94,10 +94,9 @@ namespace DataLayer.Migrations
 
             modelBuilder.Entity("DataLayer.Entityes.Flight", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("From")
                         .HasColumnType("nvarchar(max)");
@@ -127,16 +126,15 @@ namespace DataLayer.Migrations
 
             modelBuilder.Entity("DataLayer.Entityes.Ticket", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("EndPrice")
                         .HasColumnType("int");
 
-                    b.Property<int?>("FlightId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("FlightId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("IsBought")
                         .HasColumnType("bit");
@@ -144,11 +142,11 @@ namespace DataLayer.Migrations
                     b.Property<int>("PremiumMarksUsedCount")
                         .HasColumnType("int");
 
+                    b.Property<int>("TicketClass")
+                        .HasColumnType("int");
+
                     b.Property<string>("UserId")
                         .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("ticketClass")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -157,6 +155,24 @@ namespace DataLayer.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Tickets");
+                });
+
+            modelBuilder.Entity("DataLayer.Entityes.UserMarks", b =>
+                {
+                    b.Property<Guid>("FlightId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("FlightId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserMarks");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -295,12 +311,27 @@ namespace DataLayer.Migrations
                     b.HasOne("DataLayer.Entityes.Flight", "Flight")
                         .WithMany("Tickets")
                         .HasForeignKey("FlightId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("DataLayer.Entityes.ApplicationUser", "User")
                         .WithMany("Tickets")
+                        .HasForeignKey("UserId");
+                });
+
+            modelBuilder.Entity("DataLayer.Entityes.UserMarks", b =>
+                {
+                    b.HasOne("DataLayer.Entityes.Flight", "Flight")
+                        .WithMany("UserMarks")
+                        .HasForeignKey("FlightId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DataLayer.Entityes.ApplicationUser", "User")
+                        .WithMany("UserMarks")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

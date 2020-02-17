@@ -14,9 +14,13 @@ namespace Services.Implementations
     public class EFFlightRepository : IFlightRepository
     {
         private readonly EFDBContext _context;
+        private readonly Mapper FlightMapper;
         public EFFlightRepository(EFDBContext context)
         {
             _context = context;
+
+            var FlightConfiguration = new MapperConfiguration(cfg => cfg.CreateMap<Flight, FlightModel>());
+            FlightMapper = new Mapper(FlightConfiguration);
         }
 
         public async Task<bool> AddFlight(FlightModel flightModel)
@@ -59,18 +63,15 @@ namespace Services.Implementations
                 return false;
             }
         }
-
         public async Task<List<FlightModel>> GetAll()
         {
-            var configuration = new MapperConfiguration(cfg => cfg.CreateMap<Flight, FlightModel>());
-            var mapper = new Mapper(configuration);
-
             var flights = await _context.Flights.ToListAsync();
 
             List<FlightModel> flightModels = new List<FlightModel>();
+
             foreach (var f in flights)
             {
-                flightModels.Add(mapper.Map<Flight, FlightModel>(f));
+                flightModels.Add(FlightMapper.Map<FlightModel>(f));
             }
             return flightModels;
         }
