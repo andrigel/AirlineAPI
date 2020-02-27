@@ -59,13 +59,18 @@ namespace AirlineAPI
                     });
 
             services.AddSwaggerDocumentation();
+
+            services.AddCors(options => options.AddPolicy("ApiCorsPolicy", builder =>
+            {
+                builder.WithOrigins().AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin();
+            }));
         }
 
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment())
+            //    if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwaggerDocumentation();
@@ -74,9 +79,13 @@ namespace AirlineAPI
             app.UseStaticFiles();
             //    app.UseCookiePolicy();
             app.UseRouting();
+
+            app.UseCors("ApiCorsPolicy");
+
             app.UseAuthentication();
             app.UseAuthorization();
 
+            app.UseHttpsRedirection();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

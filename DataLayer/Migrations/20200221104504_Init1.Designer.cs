@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataLayer.Migrations
 {
     [DbContext(typeof(EFDBContext))]
-    [Migration("20200217122607_Init1")]
+    [Migration("20200221104504_Init1")]
     partial class Init1
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -126,14 +126,16 @@ namespace DataLayer.Migrations
 
             modelBuilder.Entity("DataLayer.Entityes.Ticket", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<Guid>("FlightId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("EndPrice")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("FlightId")
+                    b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("IsBought")
@@ -145,19 +147,14 @@ namespace DataLayer.Migrations
                     b.Property<int>("TicketClass")
                         .HasColumnType("int");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FlightId");
+                    b.HasKey("FlightId", "UserId");
 
                     b.HasIndex("UserId");
 
                     b.ToTable("Tickets");
                 });
 
-            modelBuilder.Entity("DataLayer.Entityes.UserMarks", b =>
+            modelBuilder.Entity("DataLayer.Entityes.UserMark", b =>
                 {
                     b.Property<Guid>("FlightId")
                         .HasColumnType("uniqueidentifier");
@@ -316,10 +313,12 @@ namespace DataLayer.Migrations
 
                     b.HasOne("DataLayer.Entityes.ApplicationUser", "User")
                         .WithMany("Tickets")
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
-            modelBuilder.Entity("DataLayer.Entityes.UserMarks", b =>
+            modelBuilder.Entity("DataLayer.Entityes.UserMark", b =>
                 {
                     b.HasOne("DataLayer.Entityes.Flight", "Flight")
                         .WithMany("UserMarks")

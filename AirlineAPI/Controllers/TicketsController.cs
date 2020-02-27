@@ -23,6 +23,12 @@ namespace AirlineAPI.Controllers
             _userManager = userManager;
         }
 
+        [HttpGet]
+        public IActionResult Test()
+        {
+            return Ok("It Work!!!!");
+        }
+
         [Authorize]
         [HttpGet("GetTicketsFromCurrentUser")]
         public async Task<IActionResult> GetTicketsFromCurrentUser()

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
 using AutoMapper;
 using AutoMapper.Models;
+using ViewModels;
 
 namespace AirlineAPI.Controllers
 {
@@ -62,6 +63,17 @@ namespace AirlineAPI.Controllers
         public async Task<IActionResult> GetKilometersInAir()
         {
             return Ok( await _taskRep.GetKilometersInAir(User.Claims.ToList()[1].Value));
+        }
+        [HttpPost("GetAdvice")]
+        public List<FlightModel> GetAdvice(AdviceViewModel model)
+        {
+            return _taskRep.GetAdvice(model.From, model.To);
+        }
+
+        [HttpGet("GetValidFlights")]
+        public List<FlightModel> GetValidFlights()
+        {
+            return _taskRep.GetValidFlights();
         }
     }
 }

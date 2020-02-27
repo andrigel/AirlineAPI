@@ -29,6 +29,19 @@ namespace Services.Implementations
             TicketMapper = new Mapper(TicketConfiguration);
         }
 
+        public List<FlightModel> GetAdvice(string from, string to)
+        {
+            var flights = _context.Flights.Where(f => ((f.Start > DateTime.Now) && (f.From == from) && (f.To == to))).ToList();
+
+            List<FlightModel> flightsModels = new List<FlightModel>();
+
+            foreach (var f in flights)
+            {
+                flightsModels.Add(FlightMapper.Map<Flight, FlightModel>(f));
+            }
+            return flightsModels;
+        }
+
         public List<FlightModel> GetFlightsByDate(DateTime from, DateTime to)
         {
             var flights = _context.Flights.Where(f => ((f.Start > from) && (f.Start < to))).ToList();
@@ -65,6 +78,19 @@ namespace Services.Implementations
                 result += t.Flight.Length;
             }
             return result;
+        }
+
+        public List<FlightModel> GetValidFlights()
+        {
+            var flights = _context.Flights.Where(f => f.Start > DateTime.Now).ToList();
+
+            List<FlightModel> flightsModels = new List<FlightModel>();
+
+            foreach (var f in flights)
+            {
+                flightsModels.Add(FlightMapper.Map<Flight, FlightModel>(f));
+            }
+            return flightsModels;
         }
 
         public async Task<TicketModel> ReserveTicket(string userId, int flightId, TicketClass ticketClass = TicketClass.econom, int premiumMarksUsedCount = 0, bool save = true)

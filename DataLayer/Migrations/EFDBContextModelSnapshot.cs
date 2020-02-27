@@ -152,7 +152,7 @@ namespace DataLayer.Migrations
                     b.ToTable("Tickets");
                 });
 
-            modelBuilder.Entity("DataLayer.Entityes.UserMarks", b =>
+            modelBuilder.Entity("DataLayer.Entityes.UserMark", b =>
                 {
                     b.Property<Guid>("FlightId")
                         .HasColumnType("uniqueidentifier");
@@ -316,7 +316,7 @@ namespace DataLayer.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("DataLayer.Entityes.UserMarks", b =>
+            modelBuilder.Entity("DataLayer.Entityes.UserMark", b =>
                 {
                     b.HasOne("DataLayer.Entityes.Flight", "Flight")
                         .WithMany("UserMarks")

@@ -1,6 +1,7 @@
 ﻿using AirlineAPI.Options;
 using DataLayer.Entityes;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -34,6 +35,8 @@ namespace AirlineAPI.Controllers
             if (u == null) return NotFound();
 
             var result = await _signInManager.PasswordSignInAsync(u.UserName, model.Password, false, false);
+            if (!result.Succeeded) return BadRequest();
+
             var userRoles = await _userManager.GetRolesAsync(u);
             var userRole = userRoles.Single();
 

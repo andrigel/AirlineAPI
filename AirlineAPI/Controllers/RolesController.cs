@@ -11,15 +11,33 @@ namespace AirlineAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
- //   [Authorize(Roles = "admin")]
+    [Authorize(Roles = "manager")]
     public class RolesController : Controller
     {
-        RoleManager<IdentityRole> _roleManager;
-        UserManager<ApplicationUser> _userManager;
+        readonly RoleManager<IdentityRole> _roleManager;
+        readonly UserManager<ApplicationUser> _userManager;
         public RolesController(RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager)
         {
             _roleManager = roleManager;
             _userManager = userManager;
+        }
+
+        [HttpGet("CreateManager")]
+        [Authorize]
+        public async Task<IActionResult> CreateSuperAdmin()
+        {
+            var user = await _userManager.FindByIdAsync(User.Claims.ToList()[1].Value);
+            if (user == null) return NotFound();
+
+            var userRoles = await _userManager.GetRolesAsync(user);
+
+            foreach (var role in userRoles)
+            {
+                await _userManager.RemoveFromRoleAsync(user, role);
+            }
+
+            await _userManager.AddToRoleAsync(user, "manager");
+            return Ok();
         }
 
         [HttpPost("AddNewRole")]
@@ -40,7 +58,7 @@ namespace AirlineAPI.Controllers
             return NoContent();
         }
         
-        [HttpPost("CreateAdminFromUser")]
+        [HttpPost("CreateAdmin")]
         public async Task<IActionResult> CreateAdminFromUser(string id)
         {
             try
@@ -48,8 +66,13 @@ namespace AirlineAPI.Controllers
                 var user = await _userManager.FindByIdAsync(id);
                 if (user == null) return NotFound();
 
-                await _userManager.RemoveFromRoleAsync(user, "admin");
-                await _userManager.RemoveFromRoleAsync(user, "user"); 
+                var userRoles = await _userManager.GetRolesAsync(user);
+
+                foreach (var role in userRoles)
+                {
+                    await _userManager.RemoveFromRoleAsync(user, role);
+                }
+
                 await _userManager.AddToRoleAsync(user, "admin");
 
                 return Ok();
