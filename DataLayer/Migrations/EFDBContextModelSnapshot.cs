@@ -15,7 +15,7 @@ namespace DataLayer.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "3.1.1")
+                .HasAnnotation("ProductVersion", "3.1.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
@@ -124,16 +124,14 @@ namespace DataLayer.Migrations
 
             modelBuilder.Entity("DataLayer.Entityes.Ticket", b =>
                 {
-                    b.Property<Guid>("FlightId")
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("EndPrice")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("Id")
+                    b.Property<Guid>("FlightId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("IsBought")
@@ -145,7 +143,13 @@ namespace DataLayer.Migrations
                     b.Property<int>("TicketClass")
                         .HasColumnType("int");
 
-                    b.HasKey("FlightId", "UserId");
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FlightId");
 
                     b.HasIndex("UserId");
 

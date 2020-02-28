@@ -30,19 +30,22 @@ namespace AirlineAPI.Controllers
         [HttpPut]
         public async Task<IActionResult> ModifyFlight(FlightModel flightModel)
         {
-            return Ok(await _flightRep.ModifyFlight(flightModel));
+            await _flightRep.ModifyFlight(flightModel);
+            return NoContent();
         }
 
         [HttpPost]
         public async Task<IActionResult> AddFlight(FlightModel flightModel)
         {
-            return Ok(await _flightRep.AddFlight(flightModel));
+            await _flightRep.AddFlight(flightModel);
+            return NoContent();
         }
 
         [HttpDelete]
         public async Task<IActionResult> DeleteFlight(int id)
         {
-            return Ok(await _flightRep.DeleteFlight(id));
+            await _flightRep.DeleteFlight(id);
+            return NoContent();
         }
     }
 }

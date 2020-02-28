@@ -15,44 +15,26 @@ namespace Services.Implementations
     public class EFTaskRepository : ITaskRepository
     {
         private readonly EFDBContext _context;
+        private readonly IMapper _mapper;
 
-        private readonly Mapper FlightMapper;
-        private readonly Mapper TicketMapper;
-        public EFTaskRepository(EFDBContext context)
+        public EFTaskRepository(EFDBContext context, IMapper mapper)
         {
             _context = context;
-
-            var FlightConfiguration = new MapperConfiguration(cfg => cfg.CreateMap<Flight, FlightModel>());
-            FlightMapper = new Mapper(FlightConfiguration);
-
-            var TicketConfiguration = new MapperConfiguration(cfg => cfg.CreateMap<Ticket, TicketModel>());
-            TicketMapper = new Mapper(TicketConfiguration);
+            _mapper = mapper;
         }
 
         public List<FlightModel> GetAdvice(string from, string to)
         {
-            var flights = _context.Flights.Where(f => ((f.Start > DateTime.Now) && (f.From == from) && (f.To == to))).ToList();
+            var flights = _context.Flights.Where(f => ((f.Start > DateTime.Now) && (f.From == from) && (f.To == to))).AsEnumerable();
 
-            List<FlightModel> flightsModels = new List<FlightModel>();
-
-            foreach (var f in flights)
-            {
-                flightsModels.Add(FlightMapper.Map<Flight, FlightModel>(f));
-            }
-            return flightsModels;
+            return (flights.Select(f => _mapper.Map<FlightModel>(f))).ToList();
         }
 
         public List<FlightModel> GetFlightsByDate(DateTime from, DateTime to)
         {
             var flights = _context.Flights.Where(f => ((f.Start > from) && (f.Start < to))).ToList();
 
-            List<FlightModel> flightsModels = new List<FlightModel>();
-
-            foreach (var f in flights)
-            {
-                flightsModels.Add(FlightMapper.Map<Flight, FlightModel>(f));
-            }
-            return flightsModels;
+            return (flights.Select(f => _mapper.Map<FlightModel>(f))).ToList();
         }
 
         public List<FlightModel> GetFlightsToday()
@@ -62,10 +44,13 @@ namespace Services.Implementations
             return GetFlightsByDate(from, to);
         }
 
+        //спитати
         public async Task<int> GetKilometersInAir(string userId)
         {
             int result = 0;
-            var user = await _context.ApplicationsUsers.Where(u => u.Id == userId).Include(u => u.Tickets).FirstOrDefaultAsync();
+            var user = await _context.ApplicationsUsers.Where(u => u.Id == userId)
+                .Include(u => u.Tickets).FirstOrDefaultAsync();
+
             if ((user == null) || (user.Tickets.Count == 0)) return result;
 
             foreach (var t in user.Tickets)
@@ -84,89 +69,54 @@ namespace Services.Implementations
         {
             var flights = _context.Flights.Where(f => f.Start > DateTime.Now).ToList();
 
-            List<FlightModel> flightsModels = new List<FlightModel>();
-
-            foreach (var f in flights)
-            {
-                flightsModels.Add(FlightMapper.Map<Flight, FlightModel>(f));
-            }
-            return flightsModels;
+            return (flights.Select(f => _mapper.Map<FlightModel>(f))).ToList();
         }
 
-        public async Task<TicketModel> ReserveTicket(string userId, int flightId, TicketClass ticketClass = TicketClass.econom, int premiumMarksUsedCount = 0, bool save = true)
+        public async Task<TicketModel> ReserveTicket(string userId, Guid flightId, TicketClass ticketClass = TicketClass.econom, int premiumMarksUsedCount = 0)
         {
-            var user = await _context.ApplicationsUsers.FindAsync(userId);
-
-            var flight = await _context.Flights.FindAsync(flightId);
-
-            if ((user == null) || (flight == null)) return null;
+            var flight = _context.Flights.Find(flightId);
+            var user = _context.ApplicationsUsers.Find(userId);
 
             int endPrice = flight.Price;
             if (ticketClass == TicketClass.vip) endPrice = (int)(endPrice * 1.5f);
 
             if ((user.PremiumMarksCount < premiumMarksUsedCount) || (premiumMarksUsedCount > endPrice)) return null;
 
-            try
+            endPrice -= premiumMarksUsedCount;
+            user.PremiumMarksCount -= premiumMarksUsedCount;
+
+            var ticket = new Ticket
             {
-                endPrice -= premiumMarksUsedCount;
-                user.PremiumMarksCount -= premiumMarksUsedCount;
+                FlightId = flightId,
+                UserId = userId,
+                PremiumMarksUsedCount = premiumMarksUsedCount,
+                TicketClass = ticketClass,
+                EndPrice = endPrice,
+                IsBought = false
+            };
 
-                var ticket = new Ticket
-                {
-                    Flight = flight,
-                    User = user,
-                    PremiumMarksUsedCount = premiumMarksUsedCount,
-                    TicketClass = ticketClass,
-                    EndPrice = endPrice,
-                    IsBought = false
-                };
+            await _context.Tickets.AddAsync(ticket);
+            flight.PlacesCount += 1;
+            await _context.SaveChangesAsync();
 
-                if (!save) return FlightMapper.Map<Ticket, TicketModel>(ticket);
-
-                var DBticket = await _context.Tickets.AddAsync(ticket);
-
-                await _context.Entry(DBticket.Entity).Reference(t => t.Flight).LoadAsync();
-                DBticket.Entity.Flight.PlacesReserved += 1;
-                await _context.SaveChangesAsync();
-
-                return TicketMapper.Map<Ticket, TicketModel>(ticket);
-            }
-
-            catch
-            {
-                return null;
-            }
+            return _mapper.Map<TicketModel>(ticket);
         }
 
-        public async Task<bool> TryReturnTicket(string userId, int ticketId)
+        public async Task TryReturnTicket(Guid ticketId)
         {
-            var user = await _context.ApplicationsUsers.FindAsync(userId);
-            var ticket = await _context.Tickets.FindAsync(ticketId);
+            var ticket = await _context.Tickets.Where(t => t.Id == ticketId).Include(t => t.User)
+                .Include(t => t.Flight).SingleAsync();
 
-            if ((user == null) || (ticket == null)) return false;
+            DateTime date = DateTime.Now;
+            var date2 = date.AddDays(3);
 
-            try
+            if ((ticket.Flight.Start > date2))
             {
-                DateTime date = DateTime.Now;
-                var date2 = date.AddDays(3);
-
-                await _context.Entry(ticket).Reference(t => t.Flight).LoadAsync();
-                await _context.Entry(ticket).Reference(t => t.User).LoadAsync();
-
-                if ((ticket.Flight.Start < date2) || (ticket.User.Id != user.Id)) return false;
-
                 ticket.User.PremiumMarksCount += ticket.PremiumMarksUsedCount;
                 ticket.Flight.PlacesReserved -= 1;
 
                 _context.Tickets.Remove(ticket);
                 await _context.SaveChangesAsync();
-
-                return true;
-            }
-
-            catch
-            {
-                return false;
             }
         }
     }

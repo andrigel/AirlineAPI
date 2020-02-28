@@ -1,4 +1,5 @@
 using AirlineAPI.Options;
+using AutoMapper;
 using DataLayer;
 using DataLayer.Entityes;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -33,8 +34,14 @@ namespace AirlineAPI
             services.AddTransient<ITicketRepository, EFTicketRepository>();
             services.AddTransient<IFlightRepository, EFFlightRepository>();
             services.AddTransient<IMarkRepository, EFMarkRepository>();
+            services.AddTransient<IAccountRepository, EFAccountRepository>();
+            services.AddTransient<IRoleRepository, EFRoleRepository>();
+
+            services.AddAutoMapper(typeof(AutoMapping));
+
             services.AddIdentity<ApplicationUser, IdentityRole>()
             .AddEntityFrameworkStores<EFDBContext>();
+
             services.AddControllers();
 
             services.AddAuthentication(x =>

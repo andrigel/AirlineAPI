@@ -20,10 +20,13 @@ namespace AirlineAPI.Controllers
     [ApiController]
     public class AccountController : Controller
     {
+        private readonly IAccountRepository _accountRep;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
-        public AccountController( UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        public AccountController(IUserRepository userRep, UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager, IAccountRepository accountRep)
         {
+            _accountRep = accountRep;
             _userManager = userManager;
             _signInManager = signInManager;
         }
@@ -44,7 +47,8 @@ namespace AirlineAPI.Controllers
             {
                 new Claim(ClaimsIdentity.DefaultRoleClaimType, userRole),
                 new Claim("UserId", u.Id),
-                new Claim(ClaimsIdentity.DefaultNameClaimType, u.UserName)         
+                new Claim(ClaimsIdentity.DefaultNameClaimType, u.UserName),
+                new Claim("Email",u.Email)
             };
 
             var now = DateTime.UtcNow;
@@ -55,14 +59,18 @@ namespace AirlineAPI.Controllers
                     notBefore: now,
                     claims: claims,
                     expires: now.Add(TimeSpan.FromMinutes(AuthOptions.LIFETIME)),
-                    signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256));
+                    signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(),
+                                            SecurityAlgorithms.HmacSha256));
+
             var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
 
             var response = new
             {
                 access_token = "Bearer " + encodedJwt,
                 userId = u.Id,
-                username = u.UserName
+                username = u.UserName,
+                userRole = (await _userManager.GetRolesAsync(u)).Single(),
+                userEmail = u.Email
             };
             return Json(response);
         }
@@ -79,20 +87,18 @@ namespace AirlineAPI.Controllers
         [HttpPost("Register")]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
-            if(model.Password == model.PasswordConfirm)
-            {
-                var result = await _userManager.CreateAsync(new ApplicationUser { Email = model.Email, Year = model.Year, UserName = model.UserName }, model.Password);
-                if(result.Succeeded)
-                {
-                    var u = await _userManager.FindByNameAsync(model.UserName);
-                    if(u != null)
-                    {
-                        await _userManager.AddToRoleAsync(u, "user");
-                    }
-                }
-                return Ok(result.Errors);
-            }
+            await _accountRep.Register(model);
             return NoContent();
+        }
+
+        [Authorize]
+        [HttpPost("CheckForValid")]
+        public IActionResult Check(string id, string email)
+        {
+            var claims = User.Claims.ToList();
+            if ((claims.Where(c => c.Type == ClaimsIdentity.DefaultRoleClaimType).Single().Value == id) 
+                && (claims.Where(c => c.Type == "Email").Single().Value == email)) return Ok();
+            return BadRequest();
         }
     }
 }

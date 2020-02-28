@@ -15,108 +15,74 @@ namespace Services.Implementations
     public class EFMarkRepository : IMarkRepository
     {
         private readonly EFDBContext _context;
-        private readonly Mapper FlightMapper;
-        public EFMarkRepository(EFDBContext context)
+        private readonly IMapper _mapper;
+        public EFMarkRepository(EFDBContext context, IMapper mapper)
         {
             _context = context;
-
-            var FlightConfiguration = new MapperConfiguration(cfg => cfg.CreateMap<Flight, FlightModel>());
-            FlightMapper = new Mapper(FlightConfiguration);
+            _mapper = mapper;
         }
 
-        public async Task<bool> AddMark(string userId, Guid flightId, ApplicationUser readyUser = null)
+        public async Task AddMark(string userId, Guid flightId)
         {
-            try
-            {
-                ApplicationUser user;
-                if (readyUser == null) user = await _context.Users.FindAsync(userId);
-                else user = readyUser;
-
-                var flight = await _context.Flights.FindAsync(flightId);
-                if ((user == null) || (flight == null)) return false;
-
-                var userMark = new UserMark { FlightId = flight.Id, UserId = user.Id };
-                await _context.UserMarks.AddAsync(userMark);
-                await _context.SaveChangesAsync();
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        public async Task<int> AddMarksMany(string userId, List<Guid> flightIds)
-        {
-            int countAdded = 0;
             var user = await _context.Users.FindAsync(userId);
-            if (user == null) return 0;
-
-            foreach (var flightId in flightIds)
-            {
-                if (await AddMark("", flightId, user)) countAdded++;
-            }
-            return countAdded;
-        }
-
-        public async Task<bool> DeleteMark(string userId, Guid flightId, ApplicationUser readyUser = null)
-        {
-            ApplicationUser user;
-            if (readyUser == null) user = await _context.Users.Where(u => u.Id == userId).Include(u => u.UserMarks).FirstOrDefaultAsync();
-            else user = readyUser;
 
             var flight = await _context.Flights.FindAsync(flightId);
-            if ((user == null) || (flight == null)) return false;
+            if ((user == null) || (flight == null))
+                throw new Exception("User of flight not found");
 
+            var userMark = new UserMark { FlightId = flight.Id, UserId = user.Id };
+            await _context.UserMarks.AddAsync(userMark);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task AddMark(ApplicationUser user, Guid flightId)
+        {
+            var userMark = new UserMark { FlightId = flightId, UserId = user.Id };
+            await _context.UserMarks.AddAsync(userMark);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task AddMarksMany(string userId, List<Guid> flightIds)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+                throw new Exception("User not found");
             try
             {
-                foreach (var um in user.UserMarks)
-                {
-                    await _context.Entry(um).Reference(um => um.Flight).LoadAsync();
-                }
-                foreach (var um in user.UserMarks)
-                {
-                    if (um.Flight.Id == flightId)
-                    {
-                        _context.Flights.Remove(flight);
-                        await _context.SaveChangesAsync();
-                    }
-                }
-                return true;
+                flightIds.ForEach(id => AddMark(user, id)); // спитати 
+            }
+             catch
+            {
+                throw new Exception("Some Ids are not valid. Operation aborted");
+            }
+        }
+
+        public async Task DeleteMark(Guid markId)
+        {
+            var mark = await _context.UserMarks.FindAsync(markId);
+            if (mark == null)
+                throw new Exception("Mark not found");
+            _context.UserMarks.Remove(mark);
+            await _context.SaveChangesAsync();
+        }
+
+        public void DeleteMarksMany(List<Guid> markIds)
+        {
+            try
+            {
+                markIds.ForEach(id => DeleteMark(id));
             }
             catch
             {
-                return false;
+                throw new Exception("Some Ids are not valid. Operation aborted");
             }
         }
 
-        public async Task<int> DeleteMarksMany(string userId, List<Guid> flightIds)
+        public List<FlightModel> GetMarksFromUser(string userId)
         {
-            int countDeleted = 0;
-            var user = await _context.Users.Where(u => u.Id == userId).Include(u => u.UserMarks).FirstOrDefaultAsync();
-            if (user == null) return 0;
-            foreach (var id in flightIds)
-            {
-                if (await DeleteMark("", id, user)) countDeleted++;
-            }
-            return countDeleted;
-        }
+            var marks = _context.UserMarks.Where(m => m.UserId == userId).Include(m => m.Flight).AsEnumerable();
 
-        public async Task<List<FlightModel>> GetMarksFromUser(string userId)
-        {
-            var user = await _context.Users.Where(u => u.Id == userId).Include(u => u.UserMarks).FirstOrDefaultAsync();
-            List<FlightModel> fm = new List<FlightModel>();
-            if (user == null) return fm;
-
-            foreach (var mark in user.UserMarks)
-            {
-                await _context.Entry(mark).Reference(m => m.Flight).LoadAsync();
-            }
-            foreach (var mark in user.UserMarks)
-            {
-                fm.Add(FlightMapper.Map<FlightModel>(mark.Flight));
-            }
-            return fm;
+            return marks.Select(m => _mapper.Map<FlightModel>(m)).ToList();
         }
     }
 }

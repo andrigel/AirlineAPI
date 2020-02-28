@@ -10,7 +10,8 @@ namespace AutoMapper.Models
         public Guid Id { get; set; }
         public TicketClass ticketClass { get; set; }
         public int PremiumMarksUsedCount { get; set; }
-        public int IsBought { get; set; }
+        public bool IsBought { get; set; }
+        public int CountReserved { get; set; }
         public int EndPrice { get; set; }
     }
 }

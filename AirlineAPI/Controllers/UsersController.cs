@@ -29,13 +29,14 @@ namespace AirlineAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
         {
-            return Ok(await _userRep.GetUsersAll());
+            return Ok(_userRep.GetUsersAll());
         }
 
         [HttpPut]
         public async Task<IActionResult> PutUser(UserModel u)
         {
-            return Ok(await _userRep.ModifyUser(u));
+            await _userRep.ModifyUser(u);
+            return NoContent();
         }
 
         [Authorize]
@@ -49,14 +50,17 @@ namespace AirlineAPI.Controllers
         [HttpDelete("DeleteUser")]
         public async Task<IActionResult> DeleteUser(string userId)
         {
-            return Ok(await _userManager.DeleteAsync(await _userManager.FindByIdAsync(userId)));
+            await _userManager.DeleteAsync(await _userManager.FindByIdAsync(userId));
+            return NoContent();
         }
 
         [Authorize(Roles = "user")]
         [HttpDelete("DeleteCurrentUser")]
         public async Task<IActionResult> DeleteCurrentUser()
         {
-            return Ok(await _userManager.DeleteAsync(await _userManager.FindByIdAsync(User.Claims.ToList()[1].Value)));
+            await _userManager.DeleteAsync(await _userManager.FindByIdAsync(User.Claims.ToList()
+                  .Where(c => c.Type == "userId").Single().Value));
+            return NoContent();
         }
     }
 }

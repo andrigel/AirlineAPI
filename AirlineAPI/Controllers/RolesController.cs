@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Services.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,73 +17,43 @@ namespace AirlineAPI.Controllers
     {
         readonly RoleManager<IdentityRole> _roleManager;
         readonly UserManager<ApplicationUser> _userManager;
-        public RolesController(RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager)
+        readonly IRoleRepository _roleRep;
+        public RolesController(RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager,
+                                IRoleRepository roleRep)
         {
             _roleManager = roleManager;
             _userManager = userManager;
+            _roleRep = roleRep;
         }
 
-        [HttpGet("CreateManager")]
-        [Authorize]
-        public async Task<IActionResult> CreateSuperAdmin()
+        [HttpPost("SetAsUser")]
+        public async Task<IActionResult> SetAsUser(string userId)
         {
-            var user = await _userManager.FindByIdAsync(User.Claims.ToList()[1].Value);
-            if (user == null) return NotFound();
+            await _roleRep.SetAsUser(userId);
+            return NoContent();
+        }
 
-            var userRoles = await _userManager.GetRolesAsync(user);
-
-            foreach (var role in userRoles)
-            {
-                await _userManager.RemoveFromRoleAsync(user, role);
-            }
-
-            await _userManager.AddToRoleAsync(user, "manager");
+        [HttpPost("SetAsManager")]
+        public async Task<IActionResult> SetAsManager(string userId)
+        {
+            await _roleRep.SetAsManager(userId);
             return Ok();
+        }
+
+        [HttpPost("SetAsAdmin")]
+        public async Task<IActionResult> SetAsAdmin(string userId)
+        {
+            await _roleRep.SetAsAdmin(userId);
+            return NoContent();
         }
 
         [HttpPost("AddNewRole")]
         public async Task<IActionResult> Create(string name)
         {
-            if (!string.IsNullOrEmpty(name))
-            {
-                IdentityResult result = await _roleManager.CreateAsync(new IdentityRole(name));
-                if (result.Succeeded)
-                {
-                    return Ok("Role created!");
-                }
-                else
-                {
-                    return Ok("Cant create role!");
-                }
-            }
+            await _roleManager.CreateAsync(new IdentityRole(name));
             return NoContent();
         }
         
-        [HttpPost("CreateAdmin")]
-        public async Task<IActionResult> CreateAdminFromUser(string id)
-        {
-            try
-            {
-                var user = await _userManager.FindByIdAsync(id);
-                if (user == null) return NotFound();
-
-                var userRoles = await _userManager.GetRolesAsync(user);
-
-                foreach (var role in userRoles)
-                {
-                    await _userManager.RemoveFromRoleAsync(user, role);
-                }
-
-                await _userManager.AddToRoleAsync(user, "admin");
-
-                return Ok();
-            }
-            catch
-            {
-                return BadRequest();
-            }
-        }
-
         [HttpGet("GetAllRoles")]
         public async Task<IActionResult> GetAllRoles()
         {
@@ -92,14 +63,8 @@ namespace AirlineAPI.Controllers
         [HttpPost("Delete")]
         public async Task<IActionResult> Delete(string name)
         {
-            IdentityRole role = _roleManager.Roles.Where(r => r.Name == name).FirstOrDefault();
-
-            if (role != null)
-            {
-                IdentityResult result = await _roleManager.DeleteAsync(role);
-            }
-
-            return Ok("Role Deleted");
+            await _roleManager.DeleteAsync(_roleManager.Roles.Where(r => r.Name == name).FirstOrDefault());
+            return NoContent();
         }
     }
 }

@@ -176,9 +176,9 @@ namespace DataLayer.Migrations
                 name: "Tickets",
                 columns: table => new
                 {
+                    Id = table.Column<Guid>(nullable: false),
                     UserId = table.Column<string>(nullable: false),
                     FlightId = table.Column<Guid>(nullable: false),
-                    Id = table.Column<Guid>(nullable: false),
                     TicketClass = table.Column<int>(nullable: false),
                     PremiumMarksUsedCount = table.Column<int>(nullable: false),
                     IsBought = table.Column<bool>(nullable: false),
@@ -186,7 +186,7 @@ namespace DataLayer.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Tickets", x => new { x.FlightId, x.UserId });
+                    table.PrimaryKey("PK_Tickets", x => x.Id);
                     table.ForeignKey(
                         name: "FK_Tickets_Flights_FlightId",
                         column: x => x.FlightId,
@@ -264,6 +264,11 @@ namespace DataLayer.Migrations
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tickets_FlightId",
+                table: "Tickets",
+                column: "FlightId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Tickets_UserId",

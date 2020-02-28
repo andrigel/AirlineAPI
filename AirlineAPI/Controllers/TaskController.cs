@@ -37,25 +37,24 @@ namespace AirlineAPI.Controllers
         [HttpPost("GetFlightsByDate")]
         public IActionResult GetFlightsByDate(DateTime from, DateTime to)
         {
-            
             return Ok(_taskRep.GetFlightsByDate(from, to));
         }
 
         [Authorize]
         [HttpPost("ReserveTicket")]
-        public async Task<IActionResult> ReserveTicket(int flightId, TicketClass ticketClass, int PremiumMarksUsedCount)
+        public async Task<IActionResult> ReserveTicket(Guid flightId, TicketClass ticketClass, int PremiumMarksUsedCount)
         {
-            TicketModel ticket = await _taskRep.ReserveTicket(User.Claims.ToList()[1].Value, flightId, ticketClass, PremiumMarksUsedCount);
-            if (ticket == null) return NotFound();
-
-            return Ok(ticket);
+            var userId = User.Claims.ToList().Where(u => u.Type == "UserId").Single().Value;
+            return Ok(await _taskRep.ReserveTicket(userId, flightId, ticketClass, PremiumMarksUsedCount));
         }
 
         [Authorize]
         [HttpPost("ReturnTicket")]
-        public async Task<IActionResult> ReturnTicket(int ticketId)
+        public async Task<IActionResult> ReturnTicket(Guid ticketId)
         {
-            return Ok(await _taskRep.TryReturnTicket(User.Claims.ToList()[1].Value,ticketId));
+            await _taskRep.TryReturnTicket(ticketId);
+
+            return Ok();
         }
 
         [Authorize]
@@ -64,6 +63,7 @@ namespace AirlineAPI.Controllers
         {
             return Ok( await _taskRep.GetKilometersInAir(User.Claims.ToList()[1].Value));
         }
+
         [HttpPost("GetAdvice")]
         public List<FlightModel> GetAdvice(AdviceViewModel model)
         {

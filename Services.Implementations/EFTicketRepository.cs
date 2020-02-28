@@ -15,27 +15,17 @@ namespace Services.Implementations
     public class EFTicketRepository : ITicketRepository
     {
         private readonly EFDBContext _context;
-        public EFTicketRepository(EFDBContext context)
+        private readonly IMapper _mapper;
+        public EFTicketRepository(EFDBContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
-        public async Task<List<TicketModel>> GetTicketsFromUser(string userId)
+
+        public List<TicketModel> GetTicketsFromUser(string userId)
         {
-            var user = await _context.ApplicationsUsers.Where(u => u.Id == userId).Include(u => u.Tickets).FirstOrDefaultAsync();
-            if (user == null) return null;
-
-            var configuration = new MapperConfiguration(cfg => cfg.CreateMap<Ticket, TicketModel>());
-            var mapper = new Mapper(configuration);
-
-            List<TicketModel> ticketModels = new List<TicketModel>();
-            var tickets = user.Tickets.ToList();
-
-            foreach (var t in tickets)
-            {
-                ticketModels.Add(mapper.Map<Ticket, TicketModel>(t));
-            }
-
-            return ticketModels;
+            var tickets = _context.Tickets.Where(t => t.UserId == userId).AsEnumerable();
+            return tickets.Select(t => _mapper.Map<TicketModel>(t)).ToList();
         }
     }
 }

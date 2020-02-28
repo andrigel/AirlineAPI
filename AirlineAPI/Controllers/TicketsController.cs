@@ -15,33 +15,25 @@ namespace AirlineAPI.Controllers
     public class TicketsController : ControllerBase
     {
         private readonly ITicketRepository _ticketRep;
-        private readonly UserManager<ApplicationUser> _userManager;
 
-        public TicketsController(ITicketRepository ticketRep, UserManager<ApplicationUser> userManager)
+        public TicketsController(ITicketRepository ticketRep)
         {
             _ticketRep = ticketRep;
-            _userManager = userManager;
-        }
-
-        [HttpGet]
-        public IActionResult Test()
-        {
-            return Ok("It Work!!!!");
         }
 
         [Authorize]
         [HttpGet("GetTicketsFromCurrentUser")]
         public async Task<IActionResult> GetTicketsFromCurrentUser()
         {
-            return Ok(await _ticketRep.GetTicketsFromUser(User.Claims.ToList()[1].Value));
+            return Ok(_ticketRep.GetTicketsFromUser(User.Claims.ToList()
+                            .Where(c => c.Type == "UserId").Single().Value));
         }
 
         [Authorize(Roles = "admin")]
         [HttpGet("GetTicketsFromUser")]
         public async Task<IActionResult> GetTicketsFromUser(string userId)
         {
-            if ((userId == "0") && (User.Identity.IsAuthenticated)) userId = User.Claims.ToList()[1].Value;
-            return Ok(await _ticketRep.GetTicketsFromUser(userId));
+            return Ok(_ticketRep.GetTicketsFromUser(userId));
         }
     }
 }

@@ -17,6 +17,7 @@ namespace DataLayer.Entityes
         public int PremiumMarksUsedCount { get; set; }
         public bool IsBought { get; set; }
         public int EndPrice { get; set; }
+        
     }
     public enum TicketClass
     {

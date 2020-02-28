@@ -19,6 +19,7 @@ namespace DataLayer
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<Ticket>().HasKey(t => new { t.FlightId, t.UserId });
+            modelBuilder.Entity<Ticket>().HasKey(t => t.Id);
 
             modelBuilder.Entity<Ticket>().HasOne(t => t.Flight).WithMany(f => f.Tickets).HasForeignKey(t => t.FlightId);
             modelBuilder.Entity<Ticket>().HasOne(t => t.User).WithMany(u => u.Tickets).HasForeignKey(t => t.UserId);

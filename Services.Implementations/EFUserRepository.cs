@@ -15,55 +15,34 @@ namespace Services.Implementations
     public class EFUserRepository : IUserRepository
     {
         private readonly EFDBContext _context;
+        private readonly IMapper _mapper;
 
-        private readonly Mapper UserMapper;
-        public EFUserRepository(EFDBContext context)
+        public EFUserRepository(EFDBContext context, IMapper mapper)
         {
             _context = context;
-
-            var UserConfiguration = new MapperConfiguration(cfg => cfg.CreateMap<ApplicationUser, UserModel>());
-            UserMapper = new Mapper(UserConfiguration);
+            _mapper = mapper;
         }
 
         public async Task<UserModel> GetUser(string id)
         {
-            return UserMapper.Map<UserModel>(await _context.ApplicationsUsers.FindAsync(id));
+            return _mapper.Map<UserModel>(await _context.ApplicationsUsers.FindAsync(id));
         }
 
-        public async Task<List<UserModel>> GetUsersAll()
+        public List<UserModel> GetUsersAll()
         {
-            var configuration = new MapperConfiguration(cfg => cfg.CreateMap<ApplicationUser, UserModel>());
-            var mapper = new Mapper(configuration);
-
-            List<UserModel> userModels = new List<UserModel>();
-
-            var users = await _context.Users.ToListAsync();
-            foreach (var u in users)
-            {
-                userModels.Add(mapper.Map<ApplicationUser, UserModel>(u));
-            }
-            return userModels;
+            return _context.Users.AsEnumerable().Select(u => _mapper.Map<UserModel>(u)).ToList();
         }
 
-        public async Task<bool> ModifyUser(UserModel u)
+        public async Task ModifyUser(UserModel u)
         {
-            try
-            {
-                var user = await _context.ApplicationsUsers.FindAsync(u.Id);
+            var user = await _context.ApplicationsUsers.FindAsync(u.Id);
 
-                user.UserName = u.UserName;
-                user.Year = u.Year;
-                user.PremiumMarksCount = u.PremiumMarksCount;
-                user.Email = u.Email;
+            user.UserName = u.UserName;
+            user.Year = u.Year;
+            user.PremiumMarksCount = u.PremiumMarksCount;
+            user.Email = u.Email;
 
-                await _context.SaveChangesAsync();
-                return true;
-            }
-
-            catch
-            {
-                return false;
-            }
+            await _context.SaveChangesAsync();
         }
     }
 }

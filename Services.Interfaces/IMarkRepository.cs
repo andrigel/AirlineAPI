@@ -9,10 +9,11 @@ namespace Services.Interfaces
 {
     public interface IMarkRepository
     {
-        public Task<bool> AddMark(string userId, Guid flightId, ApplicationUser readyUser = null);
-        public Task<int> AddMarksMany(string userId, List<Guid> flightIds);
-        public Task<bool> DeleteMark(string userId, Guid flightId, ApplicationUser readyUser = null);
-        public Task<int> DeleteMarksMany(string userId, List<Guid> flightIds);
-        public Task<List<FlightModel>> GetMarksFromUser(string userId);
+        public Task AddMark(string userId, Guid flightId);
+        public Task AddMark(ApplicationUser user, Guid flightId);
+        public Task AddMarksMany(string userId, List<Guid> flightIds);
+        public Task DeleteMark(Guid markId);
+        public void DeleteMarksMany(List<Guid> markIds);
+        public List<FlightModel> GetMarksFromUser(string userId);
     }
 }

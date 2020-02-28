@@ -8,6 +8,6 @@ namespace Services.Interfaces
 {
     public interface ITicketRepository
     {
-        public Task<List<TicketModel>> GetTicketsFromUser(string userId);
+        public List<TicketModel> GetTicketsFromUser(string userId);
     }
 }

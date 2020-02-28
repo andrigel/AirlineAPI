@@ -22,49 +22,55 @@ namespace AirlineAPI.Controllers
 
         [Authorize]
         [HttpGet("GetMarksFromCurrentUser")]
-        public async Task<IActionResult> GetMarksFromCurrentUser()
+        public IActionResult GetMarksFromCurrentUser()
         {
-            return Ok(await _markRep.GetMarksFromUser(User.Claims.ToList()[1].Value));
+            return Ok(_markRep.GetMarksFromUser(User.Claims.ToList()
+                        .Where(c => c.Type == "UserId").Single().Value));
         }
 
         [Authorize(Roles = "admin")]
         [HttpGet("GetMarksFromUser")]
-        public async Task<IActionResult> GetMarksFromUser(string userId)
+        public IActionResult GetMarksFromUser(string userId)
         {
-            if ((userId == "0") && (User.Identity.IsAuthenticated)) userId = User.Claims.ToList()[1].Value;
-            return Ok(await _markRep.GetMarksFromUser(userId));
+            return Ok(_markRep.GetMarksFromUser(userId));
         }
 
         [Authorize]
         [HttpPost("AddMark")]
         public async Task<IActionResult> AddMark(Guid flightId)
         {
-            var userId = User.Claims.ToList()[1].Value;
-            return Ok(await _markRep.AddMark(userId,flightId));
+            var userId = User.Claims.ToList()
+                .Where(c => c.Type == "UserId").Single().Value;
+
+            await _markRep.AddMark(userId, flightId);
+            return Ok();
         }
 
         [Authorize]
         [HttpPost("AddMarksMany")]
         public async Task<IActionResult> AddMarksMany(List<Guid> flightId)
         {
-            var userId = User.Claims.ToList()[1].Value;
-            return Ok(await _markRep.AddMarksMany(userId, flightId));
+            var userId = User.Claims.ToList()
+                .Where(c => c.Type == "UserId").Single().Value;
+
+            await _markRep.AddMarksMany(userId, flightId);
+            return Ok();
         }
 
         [Authorize]
         [HttpDelete("DeleteMark")]
-        public async Task<IActionResult> DeleteMark(Guid flightId)
+        public async Task<IActionResult> DeleteMark(Guid markId)
         {
-            var userId = User.Claims.ToList()[1].Value;
-            return Ok(await _markRep.DeleteMark(userId, flightId));
+            await _markRep.DeleteMark(markId);
+            return NoContent();
         }
 
         [Authorize]
         [HttpDelete("DeleteMarksMany")]
-        public async Task<IActionResult> DeleteMarksMany(List<Guid> flightId)
+        public async Task<IActionResult> DeleteMarksMany(List<Guid> markIds)
         {
-            var userId = User.Claims.ToList()[1].Value;
-            return Ok(await _markRep.DeleteMarksMany(userId, flightId));
+            _markRep.DeleteMarksMany(markIds);
+            return NoContent();
         }
     }
 }

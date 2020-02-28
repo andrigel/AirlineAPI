@@ -9,8 +9,8 @@ namespace Services.Interfaces
 {
     public interface IUserRepository
     {
-        public Task<List<UserModel>> GetUsersAll();
+        public List<UserModel> GetUsersAll();
         public Task<UserModel> GetUser(string id);
-        public Task<bool> ModifyUser(UserModel u);
+        public Task ModifyUser(UserModel u);
     }
 }
