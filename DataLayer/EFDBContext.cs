@@ -44,7 +44,7 @@ namespace DataLayer
         }
     }
 
-    public class EFDBContextFactory : IDesignTimeDbContextFactory<EFDBContext>
+   /* public class EFDBContextFactory : IDesignTimeDbContextFactory<EFDBContext>
     {
         public EFDBContext CreateDbContext(string[] args)
         {
@@ -52,5 +52,5 @@ namespace DataLayer
             optionsBuilder.UseSqlServer("Server=COMPUTER;Database=AirlineAPI;User Id=IIS;Password=12346789;MultipleActiveResultSets=true", b => b.MigrationsAssembly("DataLayer"));
             return new EFDBContext(optionsBuilder.Options);
         }
-    }
+    }*/
 }
